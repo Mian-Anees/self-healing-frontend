@@ -91,17 +91,17 @@ function App() {
     captureEnhancedError(error, {
       errorType: 'validation',
       severity: 'medium',
-      affectedFeature: 'form-validation',
-      userAction: 'Submitted form with invalid email',
-      expectedBehavior: 'Show validation error to user',
-      actualBehavior: 'Validation error thrown',
+      affectedFeature: 'error-testing',
+      userAction: 'Clicked "Test Validation Error" button',
+      expectedBehavior: 'Error should be caught and sent to Sentry for demonstration',
+      actualBehavior: 'Demonstration validation error thrown',
       reproductionSteps: [
-        'Navigate to form',
-        'Enter invalid email',
-        'Submit form',
+        'Navigate to dashboard',
+        'Click "Test Validation Error" button',
+        'Error is captured',
       ],
-      relatedFiles: ['src/components/Form.tsx', 'src/utils/validation.ts'],
-      potentialCause: 'Email regex validation failed',
+      relatedFiles: ['src/App.tsx'],
+      potentialCause: 'Intentional demonstration error for testing Sentry integration',
     });
   };
 
