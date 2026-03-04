@@ -105,23 +105,41 @@ function App() {
     });
   };
 
-  const triggerNetworkError = () => {
-    const error = new Error('Network request failed: timeout after 30s');
-    captureEnhancedError(error, {
-      errorType: 'network',
-      severity: 'critical',
-      affectedFeature: 'api-communication',
-      userAction: 'Making API request to external service',
-      expectedBehavior: 'Receive successful response within 30s',
-      actualBehavior: 'Request timeout',
-      reproductionSteps: [
-        'Trigger API call',
-        'Wait for 30 seconds',
-        'Timeout error occurs',
-      ],
-      relatedFiles: ['src/services/api.ts'],
-      potentialCause: 'Slow network or unresponsive server',
-    });
+  const triggerNetworkError = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/sentry/issues`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      const error = isTimeout
+        ? new Error('Network request failed: timeout after 30s')
+        : (err as Error);
+
+      captureEnhancedError(error, {
+        errorType: 'network',
+        severity: 'critical',
+        affectedFeature: 'api-communication',
+        userAction: 'Making API request to external service',
+        expectedBehavior: 'Receive successful response within 30s',
+        actualBehavior: 'Request timeout',
+        reproductionSteps: [
+          'Trigger API call',
+          'Wait for 30 seconds',
+          'Timeout error occurs',
+        ],
+        relatedFiles: ['src/App.tsx'],
+        potentialCause: 'Slow network or unresponsive server',
+      });
+    }
   };
 
   return (
